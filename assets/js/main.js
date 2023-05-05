@@ -1,185 +1,158 @@
-/*
-	Phantom by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
-*/
+(function ($) {
+  var $window = $(window),
+    $body = $("body");
 
-(function($) {
+  // Breakpoints.
+  breakpoints({
+    xlarge: ["1281px", "1680px"],
+    large: ["981px", "1280px"],
+    medium: ["737px", "980px"],
+    small: ["481px", "736px"],
+    xsmall: ["361px", "480px"],
+    xxsmall: [null, "360px"],
+  });
 
-	var	$window = $(window),
-		$body = $('body');
+  // Play initial animations on page load.
+  $window.on("load", function () {
+    window.setTimeout(function () {
+      $body.removeClass("is-preload");
+    }, 100);
+  });
 
-	// Breakpoints.
-		breakpoints({
-			xlarge:   [ '1281px',  '1680px' ],
-			large:    [ '981px',   '1280px' ],
-			medium:   [ '737px',   '980px'  ],
-			small:    [ '481px',   '736px'  ],
-			xsmall:   [ '361px',   '480px'  ],
-			xxsmall:  [ null,      '360px'  ]
-		});
+  // Touch?
+  if (browser.mobile) $body.addClass("is-touch");
 
-	// Play initial animations on page load.
-		$window.on('load', function() {
-			window.setTimeout(function() {
-				$body.removeClass('is-preload');
-			}, 100);
-		});
+  // Forms.
+  var $form = $("form");
 
-	// Touch?
-		if (browser.mobile)
-			$body.addClass('is-touch');
+  // Auto-resizing textareas.
+  $form.find("textarea").each(function () {
+    var $this = $(this),
+      $wrapper = $('<div class="textarea-wrapper"></div>'),
+      $submits = $this.find('input[type="submit"]');
 
-	// Forms.
-		var $form = $('form');
+    $this
+      .wrap($wrapper)
+      .attr("rows", 1)
+      .css("overflow", "hidden")
+      .css("resize", "none")
+      .on("keydown", function (event) {
+        if (event.keyCode == 13 && event.ctrlKey) {
+          event.preventDefault();
+          event.stopPropagation();
 
-		// Auto-resizing textareas.
-			$form.find('textarea').each(function() {
+          $(this).blur();
+        }
+      })
+      .on("blur focus", function () {
+        $this.val($.trim($this.val()));
+      })
+      .on("input blur focus --init", function () {
+        $wrapper.css("height", $this.height());
 
-				var $this = $(this),
-					$wrapper = $('<div class="textarea-wrapper"></div>'),
-					$submits = $this.find('input[type="submit"]');
+        $this
+          .css("height", "auto")
+          .css("height", $this.prop("scrollHeight") + "px");
+      })
+      .on("keyup", function (event) {
+        if (event.keyCode == 9) $this.select();
+      })
+      .triggerHandler("--init");
 
-				$this
-					.wrap($wrapper)
-					.attr('rows', 1)
-					.css('overflow', 'hidden')
-					.css('resize', 'none')
-					.on('keydown', function(event) {
+    // Fix.
+    if (browser.name == "ie" || browser.mobile)
+      $this.css("max-height", "10em").css("overflow-y", "auto");
+  });
 
-						if (event.keyCode == 13
-						&&	event.ctrlKey) {
+  // Menu.
+  var $menu = $("#menu");
 
-							event.preventDefault();
-							event.stopPropagation();
+  $menu.wrapInner('<div class="inner"></div>');
 
-							$(this).blur();
+  $menu._locked = false;
 
-						}
+  $menu._lock = function () {
+    if ($menu._locked) return false;
 
-					})
-					.on('blur focus', function() {
-						$this.val($.trim($this.val()));
-					})
-					.on('input blur focus --init', function() {
+    $menu._locked = true;
 
-						$wrapper
-							.css('height', $this.height());
+    window.setTimeout(function () {
+      $menu._locked = false;
+    }, 350);
 
-						$this
-							.css('height', 'auto')
-							.css('height', $this.prop('scrollHeight') + 'px');
+    return true;
+  };
 
-					})
-					.on('keyup', function(event) {
+  $menu._show = function () {
+    if ($menu._lock()) $body.addClass("is-menu-visible");
+  };
 
-						if (event.keyCode == 9)
-							$this
-								.select();
+  $menu._hide = function () {
+    if ($menu._lock()) $body.removeClass("is-menu-visible");
+  };
 
-					})
-					.triggerHandler('--init');
+  $menu._toggle = function () {
+    if ($menu._lock()) $body.toggleClass("is-menu-visible");
+  };
 
-				// Fix.
-					if (browser.name == 'ie'
-					||	browser.mobile)
-						$this
-							.css('max-height', '10em')
-							.css('overflow-y', 'auto');
+  $menu
+    .appendTo($body)
+    .on("click", function (event) {
+      event.stopPropagation();
+    })
+    .on("click", "a", function (event) {
+      var href = $(this).attr("href");
 
-			});
+      event.preventDefault();
+      event.stopPropagation();
 
-	// Menu.
-		var $menu = $('#menu');
+      // Hide.
+      $menu._hide();
 
-		$menu.wrapInner('<div class="inner"></div>');
+      // Redirect.
+      if (href == "#menu") return;
 
-		$menu._locked = false;
+      window.setTimeout(function () {
+        window.location.href = href;
+      }, 350);
+    })
+    .append('<a class="close" href="#menu">Close</a>');
 
-		$menu._lock = function() {
+  $body
+    .on("click", 'a[href="#menu"]', function (event) {
+      event.stopPropagation();
+      event.preventDefault();
 
-			if ($menu._locked)
-				return false;
-
-			$menu._locked = true;
-
-			window.setTimeout(function() {
-				$menu._locked = false;
-			}, 350);
-
-			return true;
-
-		};
-
-		$menu._show = function() {
-
-			if ($menu._lock())
-				$body.addClass('is-menu-visible');
-
-		};
-
-		$menu._hide = function() {
-
-			if ($menu._lock())
-				$body.removeClass('is-menu-visible');
-
-		};
-
-		$menu._toggle = function() {
-
-			if ($menu._lock())
-				$body.toggleClass('is-menu-visible');
-
-		};
-
-		$menu
-			.appendTo($body)
-			.on('click', function(event) {
-				event.stopPropagation();
-			})
-			.on('click', 'a', function(event) {
-
-				var href = $(this).attr('href');
-
-				event.preventDefault();
-				event.stopPropagation();
-
-				// Hide.
-					$menu._hide();
-
-				// Redirect.
-					if (href == '#menu')
-						return;
-
-					window.setTimeout(function() {
-						window.location.href = href;
-					}, 350);
-
-			})
-			.append('<a class="close" href="#menu">Close</a>');
-
-		$body
-			.on('click', 'a[href="#menu"]', function(event) {
-
-				event.stopPropagation();
-				event.preventDefault();
-
-				// Toggle.
-					$menu._toggle();
-
-			})
-			.on('click', function(event) {
-
-				// Hide.
-					$menu._hide();
-
-			})
-			.on('keydown', function(event) {
-
-				// Hide on escape.
-					if (event.keyCode == 27)
-						$menu._hide();
-
-			});
-
+      // Toggle.
+      $menu._toggle();
+    })
+    .on("click", function (event) {
+      // Hide.
+      $menu._hide();
+    })
+    .on("keydown", function (event) {
+      // Hide on escape.
+      if (event.keyCode == 27) $menu._hide();
+    });
 })(jQuery);
+
+/* When the user scrolls down, hide the navbar. When the user scrolls up, show the navbar */
+var lastScrollTop; // This Varibale will store the top position
+
+navbar = document.getElementById("navigation"); // Get The NavBar
+
+window.addEventListener("scroll", function () {
+  //on every scroll this funtion will be called
+
+  var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  //This line will get the location on scroll
+
+  if (scrollTop > lastScrollTop) {
+    //if it will be greater than the previous
+    navbar.style.top = "-80px";
+    //set the value to the negetive of height of navbar
+  } else {
+    navbar.style.top = "0";
+  }
+  lastScrollTop = scrollTop; //New Position Stored
+});
