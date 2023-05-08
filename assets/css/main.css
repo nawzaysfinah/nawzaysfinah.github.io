@@ -3468,7 +3468,8 @@ body.is-menu-visible #menu .close {
   justify-content: space-between;
   align-items: center;
   top: 0;
-  left: 2.75em;
+  left: 1.5em;
+  right: 1.5em;
   transition: top 0.3s;
 }
 
